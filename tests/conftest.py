@@ -15,6 +15,19 @@ from types import SimpleNamespace
 import pytest
 from gltest.direct import VMContext, create_test_addresses, deploy_contract
 
+if sys.platform == "win32":
+    # The SDK cleans up temp files that Windows still holds open. Ignore that, nothing else.
+    import os as _os
+    _orig_unlink = _os.unlink
+
+    def _tolerant_unlink(path, *a, **k):
+        try:
+            _orig_unlink(path, *a, **k)
+        except PermissionError:
+            pass
+
+    _os.unlink = _tolerant_unlink
+
 SDK = "v0.2.16"
 ROOT = Path(__file__).resolve().parent.parent
 VERDICT_PATH = ROOT / "contracts" / "contested_verdict.py"
